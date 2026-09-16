@@ -53,6 +53,12 @@
     settings.primary_agent = agent;
     persist();
   }
+
+  function setFeeCalculatorEnabled(enabled: boolean) {
+    if (!settings) return;
+    settings.fee_calculator_enabled = enabled;
+    persist();
+  }
 </script>
 
 <main class="settings">
@@ -139,6 +145,22 @@
       {#if !settings.agents[settings.primary_agent]?.enabled}
         <p class="disclaimer">This agent is disabled above, so the toolbar will be blank until you enable it.</p>
       {/if}
+    </section>
+
+    <section>
+      <h2>API fee calculator</h2>
+      <label class="row">
+        <input
+          type="checkbox"
+          checked={settings.fee_calculator_enabled}
+          onchange={(e) => setFeeCalculatorEnabled(e.currentTarget.checked)}
+        />
+        Estimate API cost alongside token counts
+      </label>
+      <p class="disclaimer">
+        Only priced for models seen in your local logs; uses each log's own reported cost when
+        available, otherwise a reference price table that can go stale as providers change pricing.
+      </p>
     </section>
   {:else}
     <p>Loading…</p>

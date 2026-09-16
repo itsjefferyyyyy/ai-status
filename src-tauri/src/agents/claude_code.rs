@@ -26,6 +26,7 @@ struct RawEntry {
 #[derive(Debug, Deserialize)]
 struct RawMessage {
     id: Option<String>,
+    model: Option<String>,
     usage: Option<RawUsage>,
 }
 
@@ -140,6 +141,7 @@ impl UsageAgent for ClaudeCodeAgent {
                     cache_read_tokens: usage.cache_read_input_tokens,
                 },
                 cost_usd: raw.cost_usd,
+                model: message.model.clone(),
                 dedup_key,
             });
         }

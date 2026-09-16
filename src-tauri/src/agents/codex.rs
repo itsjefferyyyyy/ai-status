@@ -92,6 +92,19 @@ impl UsageAgent for CodexAgent {
             let Some(payload) = v.get("payload") else {
                 continue;
             };
+
+            // `session_meta`/`turn_context` events (and occasionally
+            // `token_count` itself) may carry the model id in effect; record
+            // it against this file so later `token_count` lines that don't
+            // repeat it can still be attributed to the right model.
+            if let Some(model) = payload
+                .get("model")
+                .or_else(|| payload.get("info").and_then(|i| i.get("model")))
+                .and_then(Value::as_str)
+            {
+                cursors.set_model(path, model.to_string());
+            }
+
             if payload.get("type").and_then(Value::as_str) != Some("token_count") {
                 continue;
             }
@@ -135,6 +148,7 @@ impl UsageAgent for CodexAgent {
                 timestamp,
                 tokens,
                 cost_usd: None,
+                model: cursors.current_model(path),
                 dedup_key: format!("codex:{session_key}:{turn_id}"),
             });
         }

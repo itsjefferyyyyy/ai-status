@@ -4,6 +4,7 @@ use crate::settings::{self, AgentSettings, LimitMode, Settings};
 use crate::usage::blocks::compute_snapshot;
 use crate::usage::limits;
 use crate::usage::model::{UsageSnapshot, UsageWindowKind};
+use crate::usage::pricing::{self, PricingCache};
 use crate::usage::store::UsageStore;
 use chrono::Utc;
 use std::collections::HashMap;
@@ -16,6 +17,7 @@ const POLL_INTERVAL_SECS: u64 = 60;
 pub struct PollState {
     pub store: UsageStore,
     cursors: Mutex<HashMap<AgentId, ScanCursors>>,
+    pricing_cache: PricingCache,
 }
 
 impl PollState {
@@ -23,6 +25,7 @@ impl PollState {
         Self {
             store: UsageStore::new(),
             cursors: Mutex::new(HashMap::new()),
+            pricing_cache: PricingCache::new(),
         }
     }
 }
@@ -71,6 +74,9 @@ pub fn refresh(app: &AppHandle, state: &PollState, settings: &Settings) -> Vec<U
             }
             let mut snap = compute_snapshot(id, window, &events, now);
             apply_limit(&mut snap, agent_settings, window);
+            if settings.fee_calculator_enabled {
+                apply_cost(&mut snap, &events, &state.pricing_cache, now);
+            }
             snapshots.push(snap);
         }
     }
@@ -108,12 +114,24 @@ fn update_tray_title(
     let events = state.store.events_for(primary);
     let mut snap = compute_snapshot(primary, UsageWindowKind::FiveHour, &events, now);
     apply_limit(&mut snap, agent_settings, UsageWindowKind::FiveHour);
+    if settings.fee_calculator_enabled {
+        apply_cost(&mut snap, &events, &state.pricing_cache, now);
+    }
 
     let value = match snap.percent {
         Some(pct) => format!("{:.0}%", pct),
         None => format_compact_tokens(snap.totals.total()),
     };
-    let _ = tray.set_title(Some(format!("{} · {}", primary.tray_letter(), value)));
+    let cost_suffix = snap
+        .estimated_cost_usd
+        .map(|c| format!(" · ${:.2}{}", c, if snap.cost_incomplete { "+" } else { "" }))
+        .unwrap_or_default();
+    let _ = tray.set_title(Some(format!(
+        "{} · {}{}",
+        primary.tray_letter(),
+        value,
+        cost_suffix
+    )));
 }
 
 fn format_compact_tokens(n: u64) -> String {
@@ -124,6 +142,33 @@ fn format_compact_tokens(n: u64) -> String {
     } else {
         n.to_string()
     }
+}
+
+/// Estimates cost for the same set of events `compute_snapshot` summed into
+/// `snap`'s totals — i.e. events for this agent with a timestamp between the
+/// snapshot's window start and `now`. This reproduces (rather than re-derives
+/// from) the block-splitting logic in usage/blocks.rs: `snap.window_start_ms`
+/// is always the start of the *last* five-hour block or rolling window, so
+/// every matching event after it is, by construction, part of that same
+/// window and no earlier events leak in.
+fn apply_cost(
+    snap: &mut UsageSnapshot,
+    events: &[crate::usage::model::UsageEvent],
+    cache: &PricingCache,
+    now: chrono::DateTime<Utc>,
+) {
+    let window_events: Vec<_> = events
+        .iter()
+        .filter(|e| {
+            e.agent == snap.agent
+                && e.timestamp.timestamp_millis() >= snap.window_start_ms
+                && e.timestamp <= now
+        })
+        .cloned()
+        .collect();
+    let result = pricing::estimate_cost(&window_events, cache);
+    snap.estimated_cost_usd = Some(result.total_usd);
+    snap.cost_incomplete = result.incomplete;
 }
 
 fn apply_limit(snap: &mut UsageSnapshot, agent_settings: &AgentSettings, window: UsageWindowKind) {

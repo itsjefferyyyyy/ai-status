@@ -36,6 +36,8 @@ export interface UsageSnapshot {
   is_active: boolean;
   limit: number | null;
   percent: number | null;
+  estimated_cost_usd: number | null;
+  cost_incomplete: boolean;
   updated_at_ms: number;
 }
 
@@ -52,6 +54,7 @@ export interface Settings {
   agents: Record<AgentId, AgentSettings>;
   windows_visible: Record<UsageWindowKind, boolean>;
   primary_agent: AgentId;
+  fee_calculator_enabled: boolean;
 }
 
 export function tokenTotal(t: TokenTotals): number {
