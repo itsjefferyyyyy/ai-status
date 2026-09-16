@@ -1,1 +1,20 @@
 CLAUDE.md
+
+# Node / pnpm
+node_modules
+.env
+.env.*
+!.env.example
+
+# SvelteKit / Vite
+/build
+/.svelte-kit
+/package
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Rust / Tauri
+/src-tauri/target
+/src-tauri/gen/schemas
+
+.DS_Store

@@ -1,2 +1,28 @@
-AI Status is a project that shows 5-hour and daily usage of an AI agent in a MacOS toolbar. It allows people to track the usage of their AI agent handy. 
-Through the settings page, the user can customise which usage (from 5-hour daily and weekend) is to be shown, and also set which AI agent's usage is to be shown, such as ChatGPT, Claude, etc.
+# AI Status
+
+AI Status is a macOS menu bar app that shows your 5-hour, daily, and weekly usage of AI coding agents, updated every minute. A settings window lets you choose which usage windows are shown and which agents are tracked.
+
+## Supported agents
+
+- **Claude Code** — reads local session logs (`~/.claude/projects/**/*.jsonl`)
+- **Codex CLI** — reads local session logs (`~/.codex/sessions/YYYY/MM/DD/*.jsonl`)
+
+Both read purely local files; no login or API key is required. **ChatGPT (web/subscription)** is not supported yet — OpenAI doesn't offer an official API for the consumer subscription's usage/limit display, only an undocumented endpoint that would require a browser session cookie, which was judged too fragile and ToS-risky to build on for now.
+
+Neither data source exposes your actual plan limit, only tokens actually consumed. Per agent, you can choose how usage is displayed in Settings:
+
+- **No estimate** — raw token counts only
+- **Auto-estimate** — a percentage against a built-in, clearly-approximate table of known plan tiers
+- **Custom limit** — a percentage against a limit you enter yourself
+
+## Development
+
+Requires [pnpm](https://pnpm.io) and a Rust toolchain (`rustc`/`cargo`).
+
+```sh
+pnpm install
+pnpm tauri dev    # run the app
+pnpm tauri build  # produce a signed .app/.dmg
+```
+
+See `CLAUDE.md` for the full architecture map and additional commands (tests, lint).

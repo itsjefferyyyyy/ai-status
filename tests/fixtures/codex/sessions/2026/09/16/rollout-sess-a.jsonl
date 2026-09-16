@@ -1,0 +1,4 @@
+{"timestamp":"2026-09-16T11:00:00Z","payload":{"type":"token_count","turn_id":"t1","info":{"input_tokens":50,"output_tokens":20}}}
+{"timestamp":"2026-09-16T11:05:00Z","payload":{"type":"token_count","turn_id":"t1","info":{"input_tokens":120,"output_tokens":60}}}
+{"timestamp":"2026-09-16T11:10:00Z","payload":{"type":"token_count","turn_id":"t2","last_token_usage":{"prompt_tokens":30,"completion_tokens":10}}}
+{"timestamp":"2026-09-16T11:11:00Z","payload":{"type":"other_event","turn_id":"t2"}}
