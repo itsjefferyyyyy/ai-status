@@ -9,6 +9,11 @@ struct FileCursor {
     offset: u64,
     len: u64,
     mtime: Option<SystemTime>,
+    /// The most recent model id this session file has reported (e.g. from a
+    /// Codex `session_meta`/`turn_context` event), carried across
+    /// incremental parses so a later `token_count` line that doesn't repeat
+    /// the model id can still be attributed to it. See agents/codex.rs.
+    current_model: Option<String>,
 }
 
 /// Per-agent tail-reading state: for each known file, remembers how far it
@@ -70,5 +75,19 @@ impl ScanCursors {
         cursor.mtime = mtime;
 
         Ok(lines)
+    }
+
+    /// The most recently recorded model id for `path` (see `set_model`).
+    pub fn current_model(&self, path: &Path) -> Option<String> {
+        self.cursors.get(path).and_then(|c| c.current_model.clone())
+    }
+
+    /// Records the model id currently in effect for `path`, so later lines
+    /// that don't carry their own model id can still be attributed to it.
+    pub fn set_model(&mut self, path: &Path, model: String) {
+        self.cursors
+            .entry(path.to_path_buf())
+            .or_default()
+            .current_model = Some(model);
     }
 }

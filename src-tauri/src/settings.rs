@@ -45,6 +45,12 @@ pub struct Settings {
     /// title (independent of `windows_visible` — the tray always shows the
     /// 5-hour figure regardless of which windows the popover displays).
     pub primary_agent: AgentId,
+    /// Off by default: whether to estimate and show API cost (see
+    /// usage/pricing.rs) alongside token counts, in both the popover and the
+    /// tray title. `#[serde(default)]` so settings saved before this field
+    /// existed still deserialize instead of falling back to all-defaults.
+    #[serde(default)]
+    pub fee_calculator_enabled: bool,
 }
 
 impl Default for Settings {
@@ -63,6 +69,7 @@ impl Default for Settings {
             agents,
             windows_visible,
             primary_agent: AgentId::ClaudeCode,
+            fee_calculator_enabled: false,
         }
     }
 }

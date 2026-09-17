@@ -57,6 +57,11 @@ pub struct UsageEvent {
     pub timestamp: DateTime<Utc>,
     pub tokens: TokenTotals,
     pub cost_usd: Option<f64>,
+    /// Model id as reported by the agent's own log (e.g.
+    /// `claude-sonnet-4-5-20250929`), used to estimate cost for events that
+    /// don't already carry a first-party `cost_usd` (see usage/pricing.rs).
+    /// `None` when the log line didn't include one.
+    pub model: Option<String>,
     pub dedup_key: String,
 }
 
@@ -74,5 +79,12 @@ pub struct UsageSnapshot {
     /// Only present when the agent's limit_mode is Auto or Custom (see settings.rs).
     pub limit: Option<u64>,
     pub percent: Option<f64>,
+    /// Only present when the fee calculator is enabled (see settings.rs) and
+    /// at least one event in this window could be priced (see usage/pricing.rs).
+    pub estimated_cost_usd: Option<f64>,
+    /// True when the fee calculator is enabled but one or more events in this
+    /// window have no known price (unrecognized model, or no model at all),
+    /// meaning `estimated_cost_usd` understates the true total.
+    pub cost_incomplete: bool,
     pub updated_at_ms: i64,
 }

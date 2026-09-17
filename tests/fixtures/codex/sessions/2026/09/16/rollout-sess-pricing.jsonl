@@ -1,0 +1,2 @@
+{"timestamp":"2026-09-16T11:00:00Z","payload":{"type":"session_meta","model":"gpt-5-2025-08-07"}}
+{"timestamp":"2026-09-16T11:05:00Z","payload":{"type":"token_count","turn_id":"t1","info":{"input_tokens":1000000,"output_tokens":100000}}}

@@ -60,6 +60,12 @@
     const secs = Math.max(0, Math.floor((now - latest) / 1000));
     return `updated ${secs}s ago`;
   }
+
+  function formatCost(snap: UsageSnapshot): string {
+    if (snap.estimated_cost_usd === null) return "";
+    const amount = `$${snap.estimated_cost_usd.toFixed(2)}`;
+    return snap.cost_incomplete ? `${amount}+` : amount;
+  }
 </script>
 
 <main class="popover" bind:this={rootEl}>
@@ -80,7 +86,12 @@
           <div class="window-row">
             <div class="window-row-top">
               <span class="window-label">{WINDOW_LABELS[snap.window]}</span>
-              <span class="tokens">{tokenTotal(snap.totals).toLocaleString()} tokens</span>
+              <span class="tokens">
+                {tokenTotal(snap.totals).toLocaleString()} tokens
+                {#if snap.estimated_cost_usd !== null}
+                  <span class="cost">· {formatCost(snap)}</span>
+                {/if}
+              </span>
             </div>
             {#if snap.percent !== null}
               <div class="bar">
@@ -184,6 +195,10 @@
     color: #111;
   }
 
+  .cost {
+    color: #777;
+  }
+
   .bar {
     height: 4px;
     background: rgba(0, 0, 0, 0.08);
@@ -230,6 +245,9 @@
     }
     .tokens {
       color: #fff;
+    }
+    .cost {
+      color: #999;
     }
     .bar {
       background: rgba(255, 255, 255, 0.12);

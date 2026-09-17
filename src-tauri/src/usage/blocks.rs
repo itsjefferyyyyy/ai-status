@@ -70,6 +70,8 @@ fn compute_five_hour_block(
             is_active: false,
             limit: None,
             percent: None,
+            estimated_cost_usd: None,
+            cost_incomplete: false,
             updated_at_ms: now.timestamp_millis(),
         },
         Some(b) => {
@@ -83,6 +85,8 @@ fn compute_five_hour_block(
                 is_active,
                 limit: None,
                 percent: None,
+                estimated_cost_usd: None,
+                cost_incomplete: false,
                 updated_at_ms: now.timestamp_millis(),
             }
         }
@@ -115,6 +119,8 @@ fn compute_rolling_window(
         is_active: true,
         limit: None,
         percent: None,
+        estimated_cost_usd: None,
+        cost_incomplete: false,
         updated_at_ms: now.timestamp_millis(),
     }
 }
